@@ -1,6 +1,7 @@
-import sqlite3, random, datetime
+import random
+import sqlite3
 
-from Models import Task
+from Models.Task_Model import Task
 
 
 def getNewId():
@@ -9,7 +10,7 @@ def getNewId():
 
 tasks = [
     {
-        'Name': 'Study Python',
+        'Name': 'StudyPython',
         'Description': 'Focus on Python Slicing Techniques',
         'Progress': 'Not Started',
         'ReminderRequired': 'Yes',
@@ -21,49 +22,76 @@ tasks = [
 
 
 def connect():
-    conn = sqlite3.connect('Task.db')
+    conn = sqlite3.connect('Management.db')
     cur = conn.cursor()
-    cur.execute("CREATE TABLE IF NOT EXISTS Task (id INTEGER PRIMARY KEY, name TEXT, description TEXT, Progress TEXT, "
-                "ReminderRequired BOOLEAN, CreatedDate "
-                "TEXT, ModifiedDate TEXT) ")
+    # cur.execute("CREATE TABLE IF NOT EXISTS Management(id BIGINT, name TEXT, description TEXT, Progress TEXT, "
+    #             "ReminderRequired TEXT, CreatedDate "
+    #             "NUMERIC, ModifiedDate NUMERIC) ")
+
+    conn.execute('''CREATE TABLE IF NOT EXISTS Management
+             (id INT PRIMARY KEY     NOT NULL,
+             Name           VARCHAR(255)    NOT NULL,
+             Description            VARCHAR(255)     NOT NULL,
+             Progress        VARCHAR(255),
+             ReminderRequired  VARCHAR(255),
+             CreatedDate NUMERIC,
+             ModifiedDate NUMERIC);''')
 
     conn.commit()
     conn.close()
 
     for i in tasks:
-        tsk = Task()
-        insert(bk)
+        tsk = Task(getNewId(), i['Name'], i['Description'], i['Progress'], i['ReminderRequired'], i['CreatedDate'],
+                   i['ModifiedDate'])
+        insert(tsk)
 
 
 def insert(task):
-
-    conn = sqlite3.connect('Task.db')
+    conn = sqlite3.connect('Management.db')
     cur = conn.cursor()
-    cur.execute("INSERT INTO Task VALUES(?, ?, ?, ?)", (
-        task.id,
-        task.Name,
-        task.Description,
-        task.Progress,
-        task.ReminderRequired,
-        task.CreatedDate,
-        task.ModifiedDate
-    ))
+    cur.execute("INSERT INTO Management(id, Name, Description, Progress, ReminderRequired, CreatedDate, ModifiedDate) "
+                "VALUES(?, ?, ?, ?, ?, ?, ?)", (
+                    # task.id,
+                    getNewId(),
+                    str(task.Name),
+                    str(task.Description),
+                    str(task.Progress),
+                    str(task.ReminderRequired),
+                    str(task.CreatedDate),
+                    str(task.ModifiedDate)
+                ))
     conn.commit()
     conn.close()
 
 
 def view():
-    #connect()
-    conn = sqlite3.connect('Task.db')
+    # connect()
+
+    # conn = sqlite3.connect('Task.db')
+
+    conn = sqlite3.connect('Management.db')
+    print(conn)
+
+    print('database opened successfully')
+
+    connect()
+
     cur = conn.cursor()
 
-    cur.execute("SELECT * FROM Task")
+    cur.execute("SELECT * FROM Management")
 
     rows = cur.fetchall()
     taskList = []
     for i in rows:
-        task = Task(i[0], i[2], i[3], i[4], True if i[5] == 1 else False, i[6], i[7])
+        task = Task(i[0], i[1], i[2], i[3], i[4], i[5], i[6])
         taskList.append(task)
 
     conn.close()
     return taskList
+
+
+def DropSpecificTable():
+    conn = sqlite3.connect('Management.db')
+    cur = conn.cursor()
+
+    cur.execute("DROP TABLE Management")
