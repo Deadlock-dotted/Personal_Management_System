@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 import os, re, datetime
 from Database_Connection import db
-from Database_Connection.db import DropSpecificTable
+from Database_Connection.db import DropSpecificTable, DeleteFromSpecificTable, connect
 from Models import Task_Model
 from Models.Task_Model import Task
 
@@ -55,23 +55,56 @@ def AddTask():
             })
 
     bk = Task(db.getNewId(), Name, req_data['Description'], req_data['Progress'],
-              req_data['ReminderRequired'], datetime.datetime.now(), datetime.datetime.now())
+              req_data['ReminderRequired'], req_data['CreatedDate'], req_data['ModifiedDate'])
     print('new Book:', bk.serialize())
     db.insert(bk)
-    new_bks = [b.serialize() for b in db.view()]
-    print('books in lib :', new_bks)
+
+    # new_bks = [b.serialize() for b in db.view()]
+    # print('books in lib :', new_bks)
 
     return jsonify({
-        'res': bk.serialize(),
+        # 'res': bk.serialize(),
         'status': '200',
         'msg': 'Success creating a new Task!👍😀'
     })
 
 
-@app.route('/DeleteTable', methods=['GET'])
+@app.route('/DropTable', methods=['GET'])
 def DropTable():
     DropSpecificTable()
 
+    return jsonify({
+        'status': '200',
+        'msg': 'Successfully deleted the table!👍😀'
+    })
+
+
+@app.route('/DeleteAllRecordsFromTable', methods=['POST'])
+def DeleteFromTable():
+    req_data = request.get_json()
+    table = req_data['Table']
+    result = DeleteFromSpecificTable(table)
+
+    return jsonify({
+        'res': [],
+        'status': '200',
+        'msg': 'Successfully deleted all records from the table!'
+    })
+
+
+@app.route('/CreateNewTable', methods=['POST'])
+def CreateNewTable():
+    req_data = request.get_json()
+    table = req_data['Table']
+    connect()
+
+    return jsonify(
+        {
+            'res': [],
+            'status': '200',
+            'msg': 'Successfully created new table!'
+        }
+    )
 
 if __name__ == '__main__':
     app.run(debug=True)

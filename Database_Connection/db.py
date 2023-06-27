@@ -7,18 +7,18 @@ from Models.Task_Model import Task
 def getNewId():
     return random.getrandbits(28)
 
-
-tasks = [
-    {
-        'Name': 'StudyPython',
-        'Description': 'Focus on Python Slicing Techniques',
-        'Progress': 'Not Started',
-        'ReminderRequired': 'Yes',
-        'CreatedDate': '2023-06-18',
-        'ModifiedDate': '2023-06-18'
-    }
-
-]
+#
+# tasks = [
+#     {
+#         'Name': 'StudyPython',
+#         'Description': 'Focus on Python Slicing Techniques',
+#         'Progress': 'Not Started',
+#         'ReminderRequired': 'Yes',
+#         'CreatedDate': '2023-06-18',
+#         'ModifiedDate': '2023-06-18'
+#     }
+#
+# ]
 
 
 def connect():
@@ -28,30 +28,31 @@ def connect():
     #             "ReminderRequired TEXT, CreatedDate "
     #             "NUMERIC, ModifiedDate NUMERIC) ")
 
-    conn.execute('''CREATE TABLE IF NOT EXISTS Management
-             (id INT PRIMARY KEY     NOT NULL,
-             Name           VARCHAR(255)    NOT NULL,
-             Description            VARCHAR(255)     NOT NULL,
-             Progress        VARCHAR(255),
-             ReminderRequired  VARCHAR(255),
-             CreatedDate NUMERIC,
-             ModifiedDate NUMERIC);''')
+    # conn.execute('''CREATE TABLE IF NOT EXISTS Management
+    #          (id INT PRIMARY KEY     NOT NULL,
+    #          Name           VARCHAR(255)    NOT NULL,
+    #          Description            VARCHAR(255)     NOT NULL,
+    #          Progress        VARCHAR(255),
+    #          ReminderRequired  VARCHAR(255),
+    #          CreatedDate NUMERIC,
+    #          ModifiedDate NUMERIC);''')
+
+    cur.execute("CREATE TABLE Management (id INTEGER PRIMARY KEY, Name TEXT, Description TEXT, Progress "
+                "TEXT, ReminderRequired TEXT, CreatedDate NUMERIC, ModifiedDate NUMERIC) ")
 
     conn.commit()
     conn.close()
 
-    for i in tasks:
-        tsk = Task(getNewId(), i['Name'], i['Description'], i['Progress'], i['ReminderRequired'], i['CreatedDate'],
-                   i['ModifiedDate'])
-        insert(tsk)
+    # for i in tasks:
+    #     tsk = Task(getNewId(), i['Name'], i['Description'], i['Progress'], i['ReminderRequired'], i['CreatedDate'],
+    #                i['ModifiedDate'])
+    #     insert(tsk)
 
 
 def insert(task):
     conn = sqlite3.connect('Management.db')
     cur = conn.cursor()
-    cur.execute("INSERT INTO Management(id, Name, Description, Progress, ReminderRequired, CreatedDate, ModifiedDate) "
-                "VALUES(?, ?, ?, ?, ?, ?, ?)", (
-                    # task.id,
+    cur.execute("INSERT INTO Management VALUES(?, ?, ?, ?, ?, ?, ?)", (
                     getNewId(),
                     str(task.Name),
                     str(task.Description),
@@ -74,7 +75,7 @@ def view():
 
     print('database opened successfully')
 
-    connect()
+    #connect()
 
     cur = conn.cursor()
 
@@ -95,3 +96,27 @@ def DropSpecificTable():
     cur = conn.cursor()
 
     cur.execute("DROP TABLE Management")
+
+    conn.close()
+
+
+def DeleteFromSpecificTable(table):
+    conn = sqlite3.connect('Management.db')
+    cur = conn.cursor()
+
+    try:
+
+        cur.execute("DELETE FROM " + str(table))
+
+        conn.commit()
+
+    except:
+
+        conn.rollback()
+
+    print('Contents updated')
+
+    conn.close()
+
+    return cur.execute("SELECT * FROM Management")
+
