@@ -1,7 +1,10 @@
 from flask import Flask, render_template, request, jsonify
 import os, re, datetime
+
+from Business.Logics import DisplayTasksbasedontimeCompletion
 from Database_Connection import db
-from Database_Connection.db import DropSpecificTable, DeleteFromSpecificTable, connect
+from Database_Connection.db import DropSpecificTable, DeleteFromSpecificTable, connect, ShowReminder, \
+    ArrangeTasksInAscendingOrderBasedOnCompletionTime
 from Models import Task_Model
 from Models.Task_Model import Task
 
@@ -36,7 +39,7 @@ def GetTasks():
             'res': tasks,
             'status': '200',
             'msg': 'Successfully Got all the tasks !👍😀',
-            'no_of_books': len(tasks)
+            'no_of_tasks': len(tasks)
         })
 
 
@@ -55,7 +58,8 @@ def AddTask():
             })
 
     bk = Task(db.getNewId(), Name, req_data['Description'], req_data['Progress'],
-              req_data['ReminderRequired'], req_data['CreatedDate'], req_data['ModifiedDate'])
+              req_data['ReminderRequired'], req_data['CreatedDate'], req_data['ModifiedDate'],
+              req_data['ExpectedCompletionTime'])
     print('new Book:', bk.serialize())
     db.insert(bk)
 
@@ -63,7 +67,7 @@ def AddTask():
     # print('books in lib :', new_bks)
 
     return jsonify({
-        # 'res': bk.serialize(),
+        'res': bk.serialize(),
         'status': '200',
         'msg': 'Success creating a new Task!👍😀'
     })
@@ -105,6 +109,29 @@ def CreateNewTable():
             'msg': 'Successfully created new table!'
         }
     )
+
+
+@app.route('/SetupReminder', methods=['GET'])
+def SetupReminder():
+
+    # fetching all reminder tasks
+    allremindertasks = ShowReminder()
+
+    # Show the recent reminders
+
+    tasksrequiringquickattention = DisplayTasksbasedontimeCompletion(allremindertasks)
+
+    return jsonify(
+        {
+            'res': [task.serialize() for task in tasksrequiringquickattention],
+            'status': '200',
+            'msg': 'Successfully displayed the reminder tasks!',
+           # 'no_of_tasks': len(task)
+        }
+    )
+
+
+# tasks = [task.serialize() for task in db.view()] -- Python special ---
 
 if __name__ == '__main__':
     app.run(debug=True)
